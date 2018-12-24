@@ -12,3 +12,7 @@ libvpx-native-sys = "4"
 opus = "0.2"
 sample = "0.10"
 webm = "1"
+
+[features]
+vp9 = []
+vp8 = []

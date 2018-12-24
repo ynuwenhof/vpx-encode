@@ -1,3 +1,9 @@
+#[cfg(not(any(feature="vp8", feature="vp9")))]
+compile_error!("need exactly one of these feature: vp8, vp9");
+
+#[cfg(all(feature="vp8", feature="vp9"))]
+compile_error!("need exactly one of these feature: vp8, vp9");
+
 #[macro_use]
 extern crate serde_derive;
 
@@ -141,6 +147,10 @@ fn main() -> io::Result<()> {
     let mut webm =
         mux::Segment::new(mux::Writer::new(out)).expect("Could not initialize the multiplexer.");
 
+    #[cfg(feature="vp8")]
+    let mut vt = webm.add_video_track(width, height, None, mux::VideoCodecId::VP8);
+
+    #[cfg(feature="vp9")]
     let mut vt = webm.add_video_track(width, height, None, mux::VideoCodecId::VP9);
 
     // Setup the encoder.

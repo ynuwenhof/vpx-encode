@@ -1,6 +1,16 @@
+#[cfg(not(any(feature="vp8", feature="vp9")))]
+compile_error!("need exactly one of these feature: vp8, vp9");
+
+#[cfg(all(feature="vp8", feature="vp9"))]
+compile_error!("need exactly one of these feature: vp8, vp9");
+
 use std::os::raw::{c_int, c_uint, c_ulong};
 use std::{ptr, slice};
+#[cfg(feature="vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
+#[cfg(feature="vp8")]
+use vpx_sys::vpx_codec_cx_pkt_kind::VPX_CODEC_CX_FRAME_PKT;
+#[cfg(feature="vp9")]
 use vpx_sys::vpx_codec_cx_pkt_kind::VPX_CODEC_CX_FRAME_PKT;
 use vpx_sys::*;
 
@@ -15,7 +25,16 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(config: Config) -> Self {
-        let i = unsafe { vpx_codec_vp9_cx() };
+        let i = unsafe {
+            #[cfg(feature="vp9")]
+            {
+                vpx_codec_vp9_cx()
+            }
+            #[cfg(feature="vp8")]
+            {
+                vpx_codec_vp8_cx()
+            }
+        };
 
         assert!(config.width % 2 == 0);
         assert!(config.height % 2 == 0);
@@ -33,11 +52,15 @@ impl Encoder {
         c.g_error_resilient = VPX_ERROR_RESILIENT_DEFAULT;
 
         let mut ctx = Default::default();
+        #[cfg(feature="vp9")]
         unsafe {
             vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, ABI_VERSION); //TODO: Error.
             vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int); //TODO: Error.
             vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int); //TODO: Error.
         }
+
+        #[cfg(feature="vp8")]
+        unsafe { vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, ABI_VERSION) }; //TODO: Error.
 
         Self {
             ctx,

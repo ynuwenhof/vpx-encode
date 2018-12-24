@@ -20,3 +20,9 @@ serde = "1"
 serde_derive = "1"
 webm = "1"
 srs = {path = "..", version="0.2"}
+
+[features]
+default = ["vp9"]
+
+vp9 = ["srs/vp9"]
+vp8 = ["srs/vp8"]

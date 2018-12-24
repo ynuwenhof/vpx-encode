@@ -12,9 +12,11 @@ extern crate serde;
 extern crate vpx_sys;
 extern crate webm;
 
-mod convert;
-mod sound;
-mod vpx;
+extern crate srs;
+
+use srs::convert;
+use srs::sound;
+use srs::vpx;
 
 use docopt::Docopt;
 use scrap::{Capturer, Display};

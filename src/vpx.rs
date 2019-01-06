@@ -30,19 +30,44 @@ pub struct Encoder {
     height: usize,
 }
 
+pub type Result<T> = std::result::Result<T,&'static str>;
+
+macro_rules! call_vpx {
+    ($x:expr) => {{
+        let result = unsafe { $x }; // original expression
+        let result_int = unsafe { std::mem::transmute::<_, i32>(result) };
+        // if result != VPX_CODEC_OK {
+        if result_int != 0 {
+            return Err("failed call");
+        }
+        result
+    }};
+}
+
+macro_rules! call_vpx_ptr {
+    ($x:expr) => {{
+        let result = unsafe { $x }; // original expression
+        let result_int = unsafe { std::mem::transmute::<_, i64>(result) };
+        if result_int == 0 {
+            return Err("bad ptr");
+        }
+        result
+    }};
+}
+
 impl Encoder {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: Config) -> Result<Self> {
         let i = match config.codec {
-            VideoCodecId::VP8 => unsafe {vpx_codec_vp8_cx()},
+            VideoCodecId::VP8 => call_vpx_ptr!(vpx_codec_vp8_cx()),
             #[cfg(feature="vp9")]
-            VideoCodecId::VP9 => unsafe {vpx_codec_vp9_cx()},
+            VideoCodecId::VP9 => call_vpx_ptr!(vpx_codec_vp9_cx()),
         };
 
         assert!(config.width % 2 == 0);
         assert!(config.height % 2 == 0);
 
         let mut c = Default::default();
-        unsafe { vpx_codec_enc_config_default(i, &mut c, 0) }; //TODO: Error.
+        call_vpx!(vpx_codec_enc_config_default(i, &mut c, 0));
 
         c.g_w = config.width;
         c.g_h = config.height;
@@ -57,80 +82,75 @@ impl Encoder {
 
         match config.codec {
             VideoCodecId::VP8 => {
-                unsafe { vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32) }; //TODO: Error.
+                call_vpx!(vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32));
             },
             #[cfg(feature="vp9")]
             VideoCodecId::VP9 => {
-                unsafe {
-                    vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32); //TODO: Error.
-                    vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int); //TODO: Error.
-                    vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int); //TODO: Error.
-                }
+                call_vpx!(vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32));
+                call_vpx!(vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int));
+                call_vpx!(vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int));
             },
         };
 
-        Self {
+        Ok(Self {
             ctx,
             width: config.width as usize,
             height: config.height as usize,
-        }
+        })
     }
 
-    pub fn encode(&mut self, pts: i64, data: &[u8]) -> Packets {
+    pub fn encode(&mut self, pts: i64, data: &[u8]) -> Result<Packets> {
         assert!(2 * data.len() >= 3 * self.width * self.height);
 
         let mut image = Default::default();
-        unsafe {
-            vpx_img_wrap(
-                &mut image,
-                vpx_img_fmt::VPX_IMG_FMT_I420,
-                self.width as _,
-                self.height as _,
-                1,
-                data.as_ptr() as _,
-            );
-        }
+        call_vpx_ptr!(vpx_img_wrap(
+            &mut image,
+            vpx_img_fmt::VPX_IMG_FMT_I420,
+            self.width as _,
+            self.height as _,
+            1,
+            data.as_ptr() as _,
+        ));
 
-        unsafe {
-            vpx_codec_encode(
-                &mut self.ctx,
-                &image,
-                pts,
-                1, // Alignment
-                0, // Flags
-                vpx_sys::VPX_DL_REALTIME as u64,
-            ); //TODO: Error.
-        }
+        call_vpx!(vpx_codec_encode(
+            &mut self.ctx,
+            &image,
+            pts,
+            1, // Alignment
+            0, // Flags
+            vpx_sys::VPX_DL_REALTIME as u64,
+        ));
 
-        Packets {
+        Ok(Packets {
             ctx: &mut self.ctx,
             iter: ptr::null(),
-        }
+        })
     }
 
-    pub fn finish(mut self) -> Finish {
-        unsafe {
-            vpx_codec_encode(
-                &mut self.ctx,
-                ptr::null(),
-                -1, // PTS
-                1,  // Alignment
-                0,  // Flags
-                vpx_sys::VPX_DL_REALTIME as u64,
-            ); //TODO: Error.
-        }
+    pub fn finish(mut self) -> Result<Finish> {
+        call_vpx!(vpx_codec_encode(
+            &mut self.ctx,
+            ptr::null(),
+            -1, // PTS
+            1,  // Alignment
+            0,  // Flags
+            vpx_sys::VPX_DL_REALTIME as u64,
+        ));
 
-        Finish {
+        Ok(Finish {
             enc: self,
             iter: ptr::null(),
-        }
+        })
     }
 }
 
 impl Drop for Encoder {
     fn drop(&mut self) {
         unsafe {
-            let _ = vpx_codec_destroy(&mut self.ctx);
+            let result = vpx_codec_destroy(&mut self.ctx);
+            if result != vpx_sys::VPX_CODEC_OK {
+                panic!("failed to destroy vpx codec");
+            }
         }
     }
 }
@@ -170,7 +190,6 @@ impl<'a> Iterator for Packets<'a> {
         loop {
             unsafe {
                 let pkt = vpx_codec_get_cx_data(self.ctx, &mut self.iter);
-
                 if pkt.is_null() {
                     return None;
                 } else if (*pkt).kind == VPX_CODEC_CX_FRAME_PKT {
@@ -194,7 +213,7 @@ pub struct Finish {
 }
 
 impl Finish {
-    pub fn next(&mut self) -> Option<Frame> {
+    pub fn next(&mut self) -> Result<Option<Frame>> {
         let mut tmp = Packets {
             ctx: &mut self.enc.ctx,
             iter: self.iter,
@@ -202,25 +221,23 @@ impl Finish {
 
         if let Some(packet) = tmp.next() {
             self.iter = tmp.iter;
-            Some(packet)
+            Ok(Some(packet))
         } else {
-            unsafe {
-                vpx_codec_encode(
-                    tmp.ctx,
-                    ptr::null(),
-                    -1, // PTS
-                    1,  // Alignment
-                    0,  // Flags
-                    vpx_sys::VPX_DL_REALTIME as u64,
-                ); //TODO: Error.
-            }
+            call_vpx!(vpx_codec_encode(
+                tmp.ctx,
+                ptr::null(),
+                -1, // PTS
+                1,  // Alignment
+                0,  // Flags
+                vpx_sys::VPX_DL_REALTIME as u64,
+            ));
 
             tmp.iter = ptr::null();
             if let Some(packet) = tmp.next() {
                 self.iter = tmp.iter;
-                Some(packet)
+                Ok(Some(packet))
             } else {
-                None
+                Ok(None)
             }
         }
     }

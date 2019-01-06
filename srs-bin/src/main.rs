@@ -159,7 +159,7 @@ fn main() -> io::Result<()> {
         timebase: [1, 1000],
         bitrate: args.flag_bv,
         codec: vpx::VideoCodecId::VP8,
-    });
+    }).unwrap();
 
     // Start recording.
 
@@ -198,7 +198,7 @@ fn main() -> io::Result<()> {
 
                 convert::argb_to_i420(width as usize, height as usize, &frame, &mut yuv);
 
-                for frame in vpx.encode(ms as i64, &yuv) {
+                for frame in vpx.encode(ms as i64, &yuv).unwrap() {
                     vt.add_frame(frame.data, frame.pts as u64 * 1_000_000, frame.key);
                 }
             }
@@ -219,8 +219,8 @@ fn main() -> io::Result<()> {
 
     // End things.
 
-    let mut frames = vpx.finish();
-    while let Some(frame) = frames.next() {
+    let mut frames = vpx.finish().unwrap();
+    while let Some(frame) = frames.next().unwrap() {
         vt.add_frame(frame.data, frame.pts as u64 * 1_000_000, frame.key);
     }
 

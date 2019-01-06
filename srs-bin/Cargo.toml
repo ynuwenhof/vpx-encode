@@ -25,4 +25,3 @@ srs = {path = "..", version="0.2"}
 default = ["vp9"]
 
 vp9 = ["srs/vp9"]
-vp8 = ["srs/vp8"]

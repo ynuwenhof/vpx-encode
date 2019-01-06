@@ -15,4 +15,3 @@ webm = "1"
 
 [features]
 vp9 = []
-vp8 = []

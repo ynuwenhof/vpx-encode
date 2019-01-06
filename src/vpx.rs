@@ -1,15 +1,28 @@
-#[cfg(not(any(feature="vp8", feature="vp9")))]
-compile_error!("need exactly one of these feature: vp8, vp9");
-
-#[cfg(all(feature="vp8", feature="vp9"))]
-compile_error!("need exactly one of these feature: vp8, vp9");
-
 use std::os::raw::{c_int, c_uint};
 use std::{ptr, slice};
 #[cfg(feature="vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
 use vpx_sys::vpx_codec_cx_pkt_kind::VPX_CODEC_CX_FRAME_PKT;
 use vpx_sys::*;
+
+#[derive(Copy,Clone,Debug,PartialEq,Eq,Hash)]
+pub enum VideoCodecId {
+    VP8,
+    #[cfg(feature="vp9")]
+    VP9,
+}
+
+impl Default for VideoCodecId {
+    #[cfg(not(feature="vp9"))]
+    fn default() -> VideoCodecId {
+        VideoCodecId::VP8
+    }
+
+    #[cfg(feature="vp9")]
+    fn default() -> VideoCodecId {
+        VideoCodecId::VP9
+    }
+}
 
 pub struct Encoder {
     ctx: vpx_codec_ctx_t,
@@ -19,15 +32,10 @@ pub struct Encoder {
 
 impl Encoder {
     pub fn new(config: Config) -> Self {
-        let i = unsafe {
+        let i = match config.codec {
+            VideoCodecId::VP8 => unsafe {vpx_codec_vp8_cx()},
             #[cfg(feature="vp9")]
-            {
-                vpx_codec_vp9_cx()
-            }
-            #[cfg(feature="vp8")]
-            {
-                vpx_codec_vp8_cx()
-            }
+            VideoCodecId::VP9 => unsafe {vpx_codec_vp9_cx()},
         };
 
         assert!(config.width % 2 == 0);
@@ -46,15 +54,20 @@ impl Encoder {
         c.g_error_resilient = VPX_ERROR_RESILIENT_DEFAULT;
 
         let mut ctx = Default::default();
-        #[cfg(feature="vp9")]
-        unsafe {
-            vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32); //TODO: Error.
-            vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int); //TODO: Error.
-            vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int); //TODO: Error.
-        }
 
-        #[cfg(feature="vp8")]
-        unsafe { vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32) }; //TODO: Error.
+        match config.codec {
+            VideoCodecId::VP8 => {
+                unsafe { vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32) }; //TODO: Error.
+            },
+            #[cfg(feature="vp9")]
+            VideoCodecId::VP9 => {
+                unsafe {
+                    vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32); //TODO: Error.
+                    vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int); //TODO: Error.
+                    vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int); //TODO: Error.
+                }
+            },
+        };
 
         Self {
             ctx,
@@ -142,6 +155,8 @@ pub struct Config {
     pub timebase: [c_int; 2],
     /// The target bitrate (in kilobits per second).
     pub bitrate: c_uint,
+    /// The codec
+    pub codec: VideoCodecId,
 }
 
 pub struct Packets<'a> {

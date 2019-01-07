@@ -1,12 +1,9 @@
 #[macro_use]
 extern crate serde_derive;
 
-extern crate cpal;
 extern crate crossbeam_channel as channel;
 extern crate docopt;
-extern crate opus;
 extern crate quest;
-extern crate sample;
 extern crate scrap;
 extern crate serde;
 extern crate vpx_sys;
@@ -15,7 +12,6 @@ extern crate webm;
 extern crate srs;
 
 use srs::convert;
-use srs::sound;
 use srs::vpx;
 
 use docopt::Docopt;
@@ -88,26 +84,6 @@ fn main() -> io::Result<()> {
 
     let display = displays.into_iter().nth(i).unwrap();
 
-    // Get the microphone.
-
-    let mics: Vec<_> = cpal::input_devices().collect();
-    let mic = if mics.is_empty() {
-        None
-    } else {
-        let mut names = vec!["None".into()];
-        names.extend(mics.iter().map(|m| m.name()));
-
-        quest::ask("Which audio source?\n")?;
-        let i = quest::choose(Default::default(), &names)?;
-        println!();
-
-        if i == 0 {
-            None
-        } else {
-            Some(mics.into_iter().nth(i - 1).unwrap())
-        }
-    };
-
     // Setup the recorder.
 
     let mut capturer = Capturer::new(display)?;
@@ -165,12 +141,6 @@ fn main() -> io::Result<()> {
 
     let start = Instant::now();
     let stop = Arc::new(AtomicBool::new(false));
-
-    if let Some(mic) = mic {
-        if let Err(e) = sound::run(stop.clone(), mic, &mut webm, args.flag_ba) {
-            error(e);
-        }
-    }
 
     thread::spawn({
         let stop = stop.clone();

@@ -565,10 +565,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "srs"
 version = "0.2.0"
 dependencies = [
- "cpal 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libvpx-native-sys 4.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "opus 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sample 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "webm 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

@@ -1,4 +1,4 @@
-use std::os::raw::{c_int, c_uint};
+use std::os::raw::{c_int, c_uint, c_ulong};
 use std::{ptr, slice};
 #[cfg(feature="vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
@@ -118,7 +118,7 @@ impl Encoder {
             pts,
             1, // Alignment
             0, // Flags
-            vpx_sys::VPX_DL_REALTIME as u64,
+            vpx_sys::VPX_DL_REALTIME as c_ulong,
         ));
 
         Ok(Packets {
@@ -134,7 +134,7 @@ impl Encoder {
             -1, // PTS
             1,  // Alignment
             0,  // Flags
-            vpx_sys::VPX_DL_REALTIME as u64,
+            vpx_sys::VPX_DL_REALTIME as c_ulong,
         ));
 
         Ok(Finish {
@@ -229,7 +229,7 @@ impl Finish {
                 -1, // PTS
                 1,  // Alignment
                 0,  // Flags
-                vpx_sys::VPX_DL_REALTIME as u64,
+                vpx_sys::VPX_DL_REALTIME as c_ulong,
             ));
 
             tmp.iter = ptr::null();

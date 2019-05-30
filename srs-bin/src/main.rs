@@ -134,7 +134,7 @@ fn main() -> io::Result<()> {
         height: height,
         timebase: [1, 1000],
         bitrate: args.flag_bv,
-        codec: vpx::VideoCodecId::VP8,
+        codec,
     }).unwrap();
 
     // Start recording.

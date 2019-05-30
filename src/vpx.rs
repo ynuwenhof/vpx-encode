@@ -87,7 +87,9 @@ impl Encoder {
             #[cfg(feature="vp9")]
             VideoCodecId::VP9 => {
                 call_vpx!(vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32));
+                // set encoder internal speed settings
                 call_vpx!(vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int));
+                // set row level multi-threading
                 call_vpx!(vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int));
             },
         };
@@ -116,7 +118,7 @@ impl Encoder {
             &mut self.ctx,
             &image,
             pts,
-            1, // Alignment
+            1, // Duration
             0, // Flags
             vpx_sys::VPX_DL_REALTIME as c_ulong,
         ));
@@ -132,7 +134,7 @@ impl Encoder {
             &mut self.ctx,
             ptr::null(),
             -1, // PTS
-            1,  // Alignment
+            1,  // Duration
             0,  // Flags
             vpx_sys::VPX_DL_REALTIME as c_ulong,
         ));
@@ -171,7 +173,7 @@ pub struct Config {
     pub width: c_uint,
     /// The height (in pixels).
     pub height: c_uint,
-    /// The timebase (in seconds).
+    /// The timebase numerator and denominator (in seconds).
     pub timebase: [c_int; 2],
     /// The target bitrate (in kilobits per second).
     pub bitrate: c_uint,
@@ -227,7 +229,7 @@ impl Finish {
                 tmp.ctx,
                 ptr::null(),
                 -1, // PTS
-                1,  // Alignment
+                1,  // Duration
                 0,  // Flags
                 vpx_sys::VPX_DL_REALTIME as c_ulong,
             ));

@@ -11,7 +11,7 @@ extern crate webm;
 
 extern crate srs;
 
-use srs::convert;
+mod convert;
 use srs::vpx;
 
 use docopt::Docopt;

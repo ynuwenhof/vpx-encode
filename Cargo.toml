@@ -7,7 +7,7 @@ license = "MIT"
 version = "0.2.0"
 
 [dependencies]
-libvpx-native-sys = "4"
+env-libvpx-sys = "4.0.9"
 webm = "1"
 
 [features]

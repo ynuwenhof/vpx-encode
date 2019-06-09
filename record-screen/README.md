@@ -19,7 +19,7 @@ Don't forget to install `libvpx`.
 
 ## Video Format
 
-The video is stored as a WebM file, using the VP9 and Opus codecs.
+The video is stored as a WebM file.
 
 ## Contributing
 

@@ -27,7 +27,6 @@
 #[macro_use]
 extern crate serde_derive;
 
-extern crate crossbeam_channel as channel;
 extern crate vpx_encode as vpx;
 
 mod convert;

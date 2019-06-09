@@ -27,9 +27,6 @@
 //!
 //! All contributions are appreciated.
 
-#[macro_use]
-extern crate serde_derive;
-
 mod convert;
 
 use docopt::Docopt;
@@ -59,7 +56,7 @@ Options:
   --ba=<kbps>  Audio bitrate in kilobits per second [default: 96].
 ";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 struct Args {
     arg_path: PathBuf,
     flag_time: Option<u64>,

@@ -45,25 +45,31 @@ const USAGE: &'static str = "
 Simple WebM screen capture.
 
 Usage:
-  record-screen <path> [--time=<s>] [--fps=<fps>] [--bv=<kbps>] [--ba=<kbps>]
+  record-screen <path> [--time=<s>] [--fps=<fps>] [--bv=<kbps>] [--ba=<kbps>] [--codec CODEC]
   record-screen (-h | --help)
 
 Options:
-  -h --help    Show this screen.
-  --time=<s>   Recording duration in seconds.
-  --fps=<fps>  Frames per second [default: 30].
-  --bv=<kbps>  Video bitrate in kilobits per second [default: 5000].
-  --ba=<kbps>  Audio bitrate in kilobits per second [default: 96].
+  -h --help      Show this screen.
+  --time=<s>     Recording duration in seconds.
+  --fps=<fps>    Frames per second [default: 30].
+  --bv=<kbps>    Video bitrate in kilobits per second [default: 5000].
+  --ba=<kbps>    Audio bitrate in kilobits per second [default: 96].
+  --codec CODEC  Configure the codec used. [default: vp9]
+                 Valid values: vp8, vp9.
 ";
 
 #[derive(Debug, serde::Deserialize)]
 struct Args {
     arg_path: PathBuf,
+    flag_codec: Codec,
     flag_time: Option<u64>,
     flag_fps: u64,
     flag_bv: u32,
     flag_ba: u32,
 }
+
+#[derive(Debug,serde::Deserialize)]
+enum Codec { Vp8, Vp9 }
 
 fn main() -> io::Result<()> {
     let args: Args = Docopt::new(USAGE)
@@ -132,12 +138,9 @@ fn main() -> io::Result<()> {
     let mut webm =
         mux::Segment::new(mux::Writer::new(out)).expect("Could not initialize the multiplexer.");
 
-    let codec = vpx_encode::VideoCodecId::default();
-
-    let mux_codec = match codec {
-        vpx_encode::VideoCodecId::VP8 => mux::VideoCodecId::VP8,
-        #[cfg(feature="vp9")]
-        vpx_encode::VideoCodecId::VP9 => mux::VideoCodecId::VP9,
+    let (vpx_codec, mux_codec) = match args.flag_codec {
+        Codec::Vp8 => (vpx_encode::VideoCodecId::VP8, mux::VideoCodecId::VP8),
+        Codec::Vp9 => (vpx_encode::VideoCodecId::VP9, mux::VideoCodecId::VP9),
     };
 
     let mut vt = webm.add_video_track(width, height, None, mux_codec);
@@ -149,7 +152,7 @@ fn main() -> io::Result<()> {
         height: height,
         timebase: [1, 1000],
         bitrate: args.flag_bv,
-        codec,
+        codec: vpx_codec,
     }).unwrap();
 
     // Start recording.

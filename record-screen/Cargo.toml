@@ -12,9 +12,4 @@ quest = "0.3"
 scrap = "0.5"
 serde = {version="1", features=["derive"]}
 webm = "1"
-vpx-encode = {path = "..", version="0.3"}
-
-[features]
-default = ["vp9"]
-
-vp9 = ["vpx-encode/vp9"]
+vpx-encode = {path = "..", version="0.3", features=["vp9"]}

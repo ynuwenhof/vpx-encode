@@ -2,6 +2,8 @@
 name = "record-screen"
 version = "0.3.0"
 authors = ["Ram Kaniyur <quadrupleslap@gmail.com>"]
+license = "MIT"
+edition = "2018"
 
 [dependencies]
 cpal = "0.8"
@@ -15,9 +17,9 @@ scrap = "0.5"
 serde = "1"
 serde_derive = "1"
 webm = "1"
-srs = {path = "..", version="0.2"}
+vpx-encode = {path = "..", version="0.3"}
 
 [features]
 default = ["vp9"]
 
-vp9 = ["srs/vp9"]
+vp9 = ["vpx-encode/vp9"]

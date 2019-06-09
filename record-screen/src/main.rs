@@ -2,17 +2,9 @@
 extern crate serde_derive;
 
 extern crate crossbeam_channel as channel;
-extern crate docopt;
-extern crate quest;
-extern crate scrap;
-extern crate serde;
-extern crate vpx_sys;
-extern crate webm;
-
-extern crate srs;
+extern crate vpx_encode as vpx;
 
 mod convert;
-use srs::vpx;
 
 use docopt::Docopt;
 use scrap::{Capturer, Display};

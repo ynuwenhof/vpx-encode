@@ -6,7 +6,6 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-cpal = "0.8"
 crossbeam-channel = "0.2"
 docopt = "1"
 env-libvpx-sys = "4.0.9"

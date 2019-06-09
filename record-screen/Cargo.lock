@@ -458,7 +458,7 @@ dependencies = [
  "scrap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
- "srs 0.2.0",
+ "vpx-encode 0.3.0",
  "webm 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -580,13 +580,6 @@ version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "srs"
-version = "0.2.0"
-dependencies = [
- "env-libvpx-sys 4.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -695,6 +688,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "vpx-encode"
+version = "0.3.0"
+dependencies = [
+ "env-libvpx-sys 4.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "webm"

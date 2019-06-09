@@ -92,7 +92,7 @@ fn main() -> io::Result<()> {
             )
             .collect();
 
-        quest::ask("Which display?\n")?;
+        quest::ask("Which display?\n");
         let i = quest::choose(Default::default(), &names)?;
         println!();
 
@@ -118,7 +118,7 @@ fn main() -> io::Result<()> {
         Ok(file) => file,
         Err(ref e) if e.kind() == io::ErrorKind::AlreadyExists => {
             if loop {
-                quest::ask("Overwrite the existing file? [y/N] ")?;
+                quest::ask("Overwrite the existing file? [y/N] ");
                 if let Some(b) = quest::yesno(false)? {
                     break b;
                 }

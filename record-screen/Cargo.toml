@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 docopt = "1"
 env-libvpx-sys = "4.0.9"
-quest = "0.2"
+quest = "0.3"
 sample = "0.10"
 scrap = "0.5"
 serde = "1"

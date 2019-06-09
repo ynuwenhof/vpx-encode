@@ -1,19 +1,27 @@
-# Screen Recording Software
+# vpx-encode
 
-`srs` records your screen.
+Rust interface to libvpx encoder
 
-## Installation
+This crate provides a Rust API to use
+[libvpx](https://en.wikipedia.org/wiki/Libvpx) for encoding images.
 
-```sh
-cargo install srs
-```
+It it based entirely on code from [srs](https://crates.io/crates/srs).
+Compared to the original `srs`, this code has been simplified for use as a
+library and updated to add support for both the VP8 codec and (optionally)
+the VP9 codec.
 
-Don't forget to install `libvpx` and `libopus`.
+## Optional features
 
-## Video Format
+Compile with the cargo feature `vp9` to enable support for the VP9 codec.
 
-The video is stored as a WebM file, using the VP9 and Opus codecs.
+## Example
+
+An example of using `vpx-encode` can be found in the [`record-screen`]()
+program. The source code for `record-screen` is in the [vpx-encode git
+repository]().
 
 ## Contributing
 
-All contributions are (obviously) appreciated.
+All contributions are appreciated.
+
+License: MIT

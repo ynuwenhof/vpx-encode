@@ -30,8 +30,8 @@ const USAGE: &'static str = "
 Simple WebM screen capture.
 
 Usage:
-  srs <path> [--time=<s>] [--fps=<fps>] [--bv=<kbps>] [--ba=<kbps>]
-  srs (-h | --help)
+  record-screen <path> [--time=<s>] [--fps=<fps>] [--bv=<kbps>] [--ba=<kbps>]
+  record-screen (-h | --help)
 
 Options:
   -h --help    Show this screen.

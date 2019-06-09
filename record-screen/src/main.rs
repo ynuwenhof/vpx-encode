@@ -6,6 +6,9 @@
 //! It it based entirely on code from [srs](), and has been maintained as an
 //! example application to test the [vpx-encode]() library.
 //!
+//! Note: compile and test in release mode. Otherwise, converting the video
+//! frames is too slow for realtime encoding.
+//!
 //! # Installation
 //!
 //! This can be installed with:

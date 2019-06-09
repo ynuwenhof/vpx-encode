@@ -30,8 +30,6 @@
 #[macro_use]
 extern crate serde_derive;
 
-extern crate vpx_encode as vpx;
-
 mod convert;
 
 use docopt::Docopt;
@@ -137,19 +135,19 @@ fn main() -> io::Result<()> {
     let mut webm =
         mux::Segment::new(mux::Writer::new(out)).expect("Could not initialize the multiplexer.");
 
-    let codec = vpx::VideoCodecId::default();
+    let codec = vpx_encode::VideoCodecId::default();
 
     let mux_codec = match codec {
-        vpx::VideoCodecId::VP8 => mux::VideoCodecId::VP8,
+        vpx_encode::VideoCodecId::VP8 => mux::VideoCodecId::VP8,
         #[cfg(feature="vp9")]
-        vpx::VideoCodecId::VP9 => mux::VideoCodecId::VP9,
+        vpx_encode::VideoCodecId::VP9 => mux::VideoCodecId::VP9,
     };
 
     let mut vt = webm.add_video_track(width, height, None, mux_codec);
 
     // Setup the encoder.
 
-    let mut vpx = vpx::Encoder::new(vpx::Config {
+    let mut vpx = vpx_encode::Encoder::new(vpx_encode::Config {
         width: width,
         height: height,
         timebase: [1, 1000],

@@ -9,7 +9,6 @@ edition = "2018"
 docopt = "1"
 env-libvpx-sys = "4.0.9"
 quest = "0.3"
-sample = "0.10"
 scrap = "0.5"
 serde = {version="1", features=["derive"]}
 webm = "1"

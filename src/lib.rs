@@ -56,7 +56,22 @@ pub struct Encoder {
     height: usize,
 }
 
-pub type Result<T> = std::result::Result<T,&'static str>;
+#[derive(Debug)]
+pub enum Error {
+    FailedCall,
+    BadPtr,
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
+        write!(f,"{:?}",self)
+    }
+}
+
+impl std::error::Error for Error {
+}
+
+pub type Result<T> = std::result::Result<T,Error>;
 
 macro_rules! call_vpx {
     ($x:expr) => {{
@@ -64,7 +79,7 @@ macro_rules! call_vpx {
         let result_int = unsafe { std::mem::transmute::<_, i32>(result) };
         // if result != VPX_CODEC_OK {
         if result_int != 0 {
-            return Err("failed call");
+            return Err(Error::FailedCall.into());
         }
         result
     }};
@@ -75,7 +90,7 @@ macro_rules! call_vpx_ptr {
         let result = unsafe { $x }; // original expression
         let result_int = unsafe { std::mem::transmute::<_, i64>(result) };
         if result_int == 0 {
-            return Err("bad ptr");
+            return Err(Error::BadPtr.into());
         }
         result
     }};

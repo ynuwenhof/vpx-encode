@@ -8,7 +8,7 @@ version = "0.3.0"
 edition = "2018"
 
 [dependencies]
-env-libvpx-sys = "4.0.9"
+env-libvpx-sys = "4.0.10"
 
 [features]
 vp9 = []

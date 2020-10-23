@@ -24,28 +24,31 @@
 
 // vpx_sys is provided by the `env-libvpx-sys` crate
 
-use std::{os::raw::{c_int, c_uint, c_ulong}, mem::MaybeUninit};
+use std::{
+    mem::MaybeUninit,
+    os::raw::{c_int, c_uint, c_ulong},
+};
 
 use std::{ptr, slice};
-#[cfg(feature="vp9")]
+#[cfg(feature = "vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
 use vpx_sys::vpx_codec_cx_pkt_kind::VPX_CODEC_CX_FRAME_PKT;
 use vpx_sys::*;
 
-#[derive(Copy,Clone,Debug,PartialEq,Eq,Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum VideoCodecId {
     VP8,
-    #[cfg(feature="vp9")]
+    #[cfg(feature = "vp9")]
     VP9,
 }
 
 impl Default for VideoCodecId {
-    #[cfg(not(feature="vp9"))]
+    #[cfg(not(feature = "vp9"))]
     fn default() -> VideoCodecId {
         VideoCodecId::VP8
     }
 
-    #[cfg(feature="vp9")]
+    #[cfg(feature = "vp9")]
     fn default() -> VideoCodecId {
         VideoCodecId::VP9
     }
@@ -65,14 +68,13 @@ pub enum Error {
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
-        write!(f,"{:?}",self)
+        write!(f, "{:?}", self)
     }
 }
 
-impl std::error::Error for Error {
-}
+impl std::error::Error for Error {}
 
-pub type Result<T> = std::result::Result<T,Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 macro_rules! call_vpx {
     ($x:expr) => {{
@@ -101,7 +103,7 @@ impl Encoder {
     pub fn new(config: Config) -> Result<Self> {
         let i = match config.codec {
             VideoCodecId::VP8 => call_vpx_ptr!(vpx_codec_vp8_cx()),
-            #[cfg(feature="vp9")]
+            #[cfg(feature = "vp9")]
             VideoCodecId::VP9 => call_vpx_ptr!(vpx_codec_vp9_cx()),
         };
 
@@ -126,16 +128,36 @@ impl Encoder {
 
         match config.codec {
             VideoCodecId::VP8 => {
-                call_vpx!(vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32));
-            },
-            #[cfg(feature="vp9")]
+                call_vpx!(vpx_codec_enc_init_ver(
+                    &mut ctx,
+                    i,
+                    &c,
+                    0,
+                    vpx_sys::VPX_ENCODER_ABI_VERSION as i32
+                ));
+            }
+            #[cfg(feature = "vp9")]
             VideoCodecId::VP9 => {
-                call_vpx!(vpx_codec_enc_init_ver(&mut ctx, i, &c, 0, vpx_sys::VPX_ENCODER_ABI_VERSION as i32));
+                call_vpx!(vpx_codec_enc_init_ver(
+                    &mut ctx,
+                    i,
+                    &c,
+                    0,
+                    vpx_sys::VPX_ENCODER_ABI_VERSION as i32
+                ));
                 // set encoder internal speed settings
-                call_vpx!(vpx_codec_control_(&mut ctx, VP8E_SET_CPUUSED as _, 6 as c_int));
+                call_vpx!(vpx_codec_control_(
+                    &mut ctx,
+                    VP8E_SET_CPUUSED as _,
+                    6 as c_int
+                ));
                 // set row level multi-threading
-                call_vpx!(vpx_codec_control_(&mut ctx, VP9E_SET_ROW_MT as _, 1 as c_int));
-            },
+                call_vpx!(vpx_codec_control_(
+                    &mut ctx,
+                    VP9E_SET_ROW_MT as _,
+                    1 as c_int
+                ));
+            }
         };
 
         Ok(Self {

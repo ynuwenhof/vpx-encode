@@ -24,7 +24,8 @@
 
 // vpx_sys is provided by the `env-libvpx-sys` crate
 
-use std::os::raw::{c_int, c_uint, c_ulong};
+use std::{os::raw::{c_int, c_uint, c_ulong}, mem::MaybeUninit};
+
 use std::{ptr, slice};
 #[cfg(feature="vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
@@ -107,7 +108,8 @@ impl Encoder {
         assert!(config.width % 2 == 0);
         assert!(config.height % 2 == 0);
 
-        let mut c = Default::default();
+        let c = MaybeUninit::zeroed();
+        let mut c = unsafe { c.assume_init() };
         call_vpx!(vpx_codec_enc_config_default(i, &mut c, 0));
 
         c.g_w = config.width;
@@ -119,7 +121,8 @@ impl Encoder {
         c.g_threads = 8;
         c.g_error_resilient = VPX_ERROR_RESILIENT_DEFAULT;
 
-        let mut ctx = Default::default();
+        let ctx = MaybeUninit::zeroed();
+        let mut ctx = unsafe { ctx.assume_init() };
 
         match config.codec {
             VideoCodecId::VP8 => {
@@ -145,7 +148,9 @@ impl Encoder {
     pub fn encode(&mut self, pts: i64, data: &[u8]) -> Result<Packets> {
         assert!(2 * data.len() >= 3 * self.width * self.height);
 
-        let mut image = Default::default();
+        let image = MaybeUninit::zeroed();
+        let mut image = unsafe { image.assume_init() };
+
         call_vpx_ptr!(vpx_img_wrap(
             &mut image,
             vpx_img_fmt::VPX_IMG_FMT_I420,
@@ -238,7 +243,7 @@ impl<'a> Iterator for Packets<'a> {
                 } else if (*pkt).kind == VPX_CODEC_CX_FRAME_PKT {
                     let f = &(*pkt).data.frame;
                     return Some(Frame {
-                        data: slice::from_raw_parts(f.buf as _, f.sz),
+                        data: slice::from_raw_parts(f.buf as _, f.sz as usize),
                         key: (f.flags & VPX_FRAME_IS_KEY) != 0,
                         pts: f.pts,
                     });

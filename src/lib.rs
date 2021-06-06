@@ -24,12 +24,19 @@
 
 // vpx_sys is provided by the `env-libvpx-sys` crate
 
+#![cfg_attr(feature = "backtrace", feature(backtrace))]
+
 use std::{
     mem::MaybeUninit,
     os::raw::{c_int, c_uint, c_ulong},
 };
 
+#[cfg(feature = "backtrace")]
+use std::backtrace::Backtrace;
 use std::{ptr, slice};
+
+use thiserror::Error;
+
 #[cfg(feature = "vp9")]
 use vpx_sys::vp8e_enc_control_id::*;
 use vpx_sys::vpx_codec_cx_pkt_kind::VPX_CODEC_CX_FRAME_PKT;
@@ -60,19 +67,24 @@ pub struct Encoder {
     height: usize,
 }
 
-#[derive(Debug)]
-pub enum Error {
-    FailedCall,
-    BadPtr,
+#[derive(Debug, Error)]
+#[error("VPX encode error: {msg}")]
+pub struct Error {
+    msg: String,
+    #[cfg(feature = "backtrace")]
+    #[backtrace]
+    backtrace: Backtrace,
 }
 
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
-        write!(f, "{:?}", self)
+impl From<String> for Error {
+    fn from(msg: String) -> Self {
+        Self {
+            msg,
+            #[cfg(feature = "backtrace")]
+            backtrace: Backtrace::capture(),
+        }
     }
 }
-
-impl std::error::Error for Error {}
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -82,7 +94,10 @@ macro_rules! call_vpx {
         let result_int = unsafe { std::mem::transmute::<_, i32>(result) };
         // if result != VPX_CODEC_OK {
         if result_int != 0 {
-            return Err(Error::FailedCall.into());
+            return Err(Error::from(format!(
+                "Function call failed (error code {}).",
+                result_int
+            )));
         }
         result
     }};
@@ -93,7 +108,7 @@ macro_rules! call_vpx_ptr {
         let result = unsafe { $x }; // original expression
         let result_int = unsafe { std::mem::transmute::<_, i64>(result) };
         if result_int == 0 {
-            return Err(Error::BadPtr.into());
+            return Err(Error::from("Bad pointer.".to_string()));
         }
         result
     }};

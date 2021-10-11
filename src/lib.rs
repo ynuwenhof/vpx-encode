@@ -122,8 +122,12 @@ impl Encoder {
             VideoCodecId::VP9 => call_vpx_ptr!(vpx_codec_vp9_cx()),
         };
 
-        assert!(config.width % 2 == 0);
-        assert!(config.height % 2 == 0);
+        if config.width % 2 != 0 {
+            return Err(Error::from("Width must be divisible by 2".to_string()));
+        }
+        if config.height % 2 != 0 {
+            return Err(Error::from("Height must be divisible by 2".to_string()));
+        }
 
         let c = MaybeUninit::zeroed();
         let mut c = unsafe { c.assume_init() };

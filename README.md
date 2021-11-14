@@ -16,9 +16,10 @@ Compile with the cargo feature `vp9` to enable support for the VP9 codec.
 
 ## Example
 
-An example of using `vpx-encode` can be found in the [`record-screen`]()
-program. The source code for `record-screen` is in the [vpx-encode git
-repository]().
+An example of using `vpx-encode` can be found in the
+[`record-screen`](https://crates.io/crates/record-screen) program. The source
+code of record screen is
+[here](https://github.com/astraw/vpx-encode/tree/master/record-screen).
 
 ## Contributing
 

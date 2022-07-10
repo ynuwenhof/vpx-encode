@@ -14,4 +14,4 @@ quest = "0.3"
 scrap = "0.5"
 serde = {version="1", features=["derive"]}
 webm = "1"
-vpx-encode = {path = "..", version="0.5", features=["vp9"]}
+vpx-encode = {path = "..", version="0.6", features=["vp9"]}

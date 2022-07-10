@@ -106,8 +106,7 @@ macro_rules! call_vpx {
 macro_rules! call_vpx_ptr {
     ($x:expr) => {{
         let result = unsafe { $x }; // original expression
-        let result_int = unsafe { std::mem::transmute::<_, i64>(result) };
-        if result_int == 0 {
+        if result.is_null() {
             return Err(Error::from("Bad pointer.".to_string()));
         }
         result
@@ -238,7 +237,7 @@ impl Drop for Encoder {
         unsafe {
             let result = vpx_codec_destroy(&mut self.ctx);
             if result != vpx_sys::VPX_CODEC_OK {
-                panic!("failed to destroy vpx codec");
+                eprintln!("failed to destroy vpx codec: {result:?}");
             }
         }
     }

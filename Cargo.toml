@@ -4,7 +4,7 @@ description = "Rust interface to libvpx encoder"
 repository = "https://github.com/astraw/vpx-encode"
 authors = ["Andrew Straw <strawman@astraw.com>", "Ram Kaniyur <quadrupleslap@gmail.com>"]
 license = "MIT"
-version = "0.6.1"
+version = "0.6.2"
 edition = "2018"
 
 [dependencies]

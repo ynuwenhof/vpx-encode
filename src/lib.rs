@@ -24,7 +24,10 @@
 
 // vpx_sys is provided by the `env-libvpx-sys` crate
 
-#![cfg_attr(feature = "backtrace", feature(backtrace))]
+#![cfg_attr(
+    feature = "backtrace",
+    feature(error_generic_member_access, provide_any)
+)]
 
 use std::{
     mem::MaybeUninit,

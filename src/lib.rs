@@ -144,6 +144,9 @@ impl Encoder {
         c.g_threads = 8;
         c.g_error_resilient = VPX_ERROR_RESILIENT_DEFAULT;
 
+        c.rc_min_quantizer = 4;
+        c.rc_max_quantizer = 24;
+
         let ctx = MaybeUninit::zeroed();
         let mut ctx = unsafe { ctx.assume_init() };
 
